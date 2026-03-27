@@ -1501,6 +1501,12 @@ function openPriceSearch(prefix, site) {
   window.open(SEARCH_URLS[site](kw), '_blank', 'noopener');
 }
 
+function toggleRowSearch(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+
 // 名前が空のとき検索ボタンを薄くする（オプション）
 function updateSearchLinks(prefix) {}
 
@@ -1615,15 +1621,32 @@ function renderIngredients() {
     return;
   }
 
-  const rows = ings.map(ing => `
+  const rows = ings.map(ing => {
+    const safeKw = escHtml(ing.name).replace(/'/g, "\\'");
+    return `
     <tr>
       <td class="td-name">🌿 ${escHtml(ing.name)}</td>
       <td>${escHtml(ing.amount || '—')}</td>
       <td>${ing.price && ing.price !== '0' ? '¥' + parseFloat(ing.price).toLocaleString() : '—'}</td>
       <td>${ing.date ? escHtml(ing.date) : '—'}</td>
       <td>${escHtml(ing.supplier || '—')}</td>
-      <td class="td-del"><button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteIngredient('${ing.id}')">✕</button></td>
-    </tr>`).join('');
+      <td class="td-del" style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="toggleRowSearch('ing-s-${ing.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteIngredient('${ing.id}')">✕</button>
+      </td>
+    </tr>
+    <tr id="ing-s-${ing.id}" style="display:none;">
+      <td colspan="6" style="padding:6px 10px;background:var(--yellow-light);border-top:none;">
+        <div class="price-search-row">
+          <span class="price-search-label">最安値を検索：</span>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.rakuten('${safeKw}'),'_blank','noopener')">🦅 楽天</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cotta('${safeKw}'),'_blank','noopener')">🎂 cotta</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cuoca('${safeKw}'),'_blank','noopener')">🍞 cuoca</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 
   list.innerHTML = `
     <div class="ingredients-table-wrap">
@@ -1691,13 +1714,30 @@ function renderSupplies() {
     list.innerHTML = '<div class="no-items">備品が登録されていません</div>';
     return;
   }
-  const rows = sups.map(s => `
+  const rows = sups.map(s => {
+    const safeKw = escHtml(s.name).replace(/'/g, "\\'");
+    return `
     <tr>
       <td class="td-name">📦 ${escHtml(s.name)}</td>
       <td>${escHtml(s.amount || '—')}</td>
       <td>${s.price && s.price !== '0' ? '¥' + parseFloat(s.price).toLocaleString() : '—'}</td>
-      <td class="td-del"><button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteSupply('${s.id}')">✕</button></td>
-    </tr>`).join('');
+      <td class="td-del" style="white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="toggleRowSearch('sup-s-${s.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteSupply('${s.id}')">✕</button>
+      </td>
+    </tr>
+    <tr id="sup-s-${s.id}" style="display:none;">
+      <td colspan="4" style="padding:6px 10px;background:var(--yellow-light);border-top:none;">
+        <div class="price-search-row">
+          <span class="price-search-label">最安値を検索：</span>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.rakuten('${safeKw}'),'_blank','noopener')">🦅 楽天</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cotta('${safeKw}'),'_blank','noopener')">🎂 cotta</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cuoca('${safeKw}'),'_blank','noopener')">🍞 cuoca</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
   list.innerHTML = `
     <div class="ingredients-table-wrap">
       <table class="ingredients-table">
