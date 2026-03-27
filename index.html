@@ -457,35 +457,36 @@
   }
   .price-tiers-header {
     background: var(--lavender);
-    padding: 7px 14px;
+    padding: 8px 14px;
     font-size: 12px;
     font-weight: 700;
     color: var(--brown);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  }
+  .price-tiers-header p {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-light);
+    margin-top: 2px;
+    line-height: 1.4;
   }
   .price-tier-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
     align-items: center;
     padding: 10px 14px;
     background: var(--lavender-light);
     border-top: 1px solid var(--lavender);
     gap: 10px;
   }
-  .tier-badge {
-    font-size: 16px;
-    width: 28px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .tier-info { flex: 1; }
+  .tier-badge { font-size: 18px; text-align: center; }
+  .tier-info {}
   .tier-name { font-size: 13px; font-weight: 700; color: var(--brown); }
-  .tier-rate { font-size: 10px; color: var(--text-light); }
-  .tier-price { font-size: 18px; font-weight: 800; color: var(--pink-dark); }
-  .tier-multiplier-input {
-    width: 52px;
-    padding: 4px 6px;
+  .tier-desc { font-size: 10px; color: var(--text-light); line-height: 1.3; margin-top: 1px; }
+  .tier-rate-wrap { text-align: center; }
+  .tier-rate-label { font-size: 9px; color: var(--text-light); }
+  .tier-rate-input {
+    width: 48px;
+    padding: 4px 4px;
     border: 1.5px solid var(--lavender);
     border-radius: 8px;
     font-size: 13px;
@@ -495,8 +496,13 @@
     text-align: center;
     outline: none;
     font-family: inherit;
+    display: block;
+    margin: 2px auto 0;
   }
-  .tier-multiplier-input:focus { border-color: var(--pink-dark); }
+  .tier-rate-input:focus { border-color: var(--pink-dark); }
+  .tier-price-wrap { text-align: right; }
+  .tier-price { font-size: 17px; font-weight: 800; color: var(--pink-dark); white-space: nowrap; }
+  .tier-price-mul { font-size: 10px; color: var(--text-light); margin-top: 1px; }
 
   .ingredient-form {
     background: var(--mint-light);
@@ -903,35 +909,56 @@
       <!-- 推奨販売価格 松竹梅 -->
       <div class="price-tiers">
         <div class="price-tiers-header">
-          <span>💰 推奨販売価格</span>
-          <span style="font-size:10px;font-weight:400;color:var(--text-light);">倍率を変更できます</span>
+          <span>💰 推奨販売価格（松竹梅）</span>
+          <p>業界の原価率データをもとに算出。原価率(%)を変更できます。</p>
         </div>
+        <!-- 梅: 町のお菓子屋・量販系 原価率30% -->
         <div class="price-tier-row">
           <div class="tier-badge">🌸</div>
           <div class="tier-info">
             <div class="tier-name">梅</div>
-            <div class="tier-rate">原価 × <span id="rate-ume-label">2</span> 倍</div>
+            <div class="tier-desc">町のお菓子屋・量販系<br>原価率の高い一般的な店舗</div>
           </div>
-          <input class="tier-multiplier-input" id="rate-ume" type="number" value="2" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
-          <div class="tier-price" id="price-ume">¥0</div>
+          <div class="tier-rate-wrap">
+            <div class="tier-rate-label">原価率(%)</div>
+            <input class="tier-rate-input" id="rate-ume" type="number" value="30" min="1" max="99" step="1" oninput="renderPriceTiers()">
+          </div>
+          <div class="tier-price-wrap">
+            <div class="tier-price" id="price-ume">—</div>
+            <div class="tier-price-mul" id="mul-ume"></div>
+          </div>
         </div>
+        <!-- 竹: パティスリー・中級専門店 原価率22% -->
         <div class="price-tier-row">
           <div class="tier-badge">🎋</div>
           <div class="tier-info">
             <div class="tier-name">竹</div>
-            <div class="tier-rate">原価 × <span id="rate-take-label">3</span> 倍</div>
+            <div class="tier-desc">パティスリー・中級専門店<br>技術・素材で差別化した店舗</div>
           </div>
-          <input class="tier-multiplier-input" id="rate-take" type="number" value="3" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
-          <div class="tier-price" id="price-take">¥0</div>
+          <div class="tier-rate-wrap">
+            <div class="tier-rate-label">原価率(%)</div>
+            <input class="tier-rate-input" id="rate-take" type="number" value="22" min="1" max="99" step="1" oninput="renderPriceTiers()">
+          </div>
+          <div class="tier-price-wrap">
+            <div class="tier-price" id="price-take">—</div>
+            <div class="tier-price-mul" id="mul-take"></div>
+          </div>
         </div>
+        <!-- 松: 高級ブランド・百貨店系 原価率12% -->
         <div class="price-tier-row">
           <div class="tier-badge">🌲</div>
           <div class="tier-info">
             <div class="tier-name">松</div>
-            <div class="tier-rate">原価 × <span id="rate-matsu-label">5</span> 倍</div>
+            <div class="tier-desc">高級ブランド・百貨店系<br>ブランド力・希少素材で高付加価値</div>
           </div>
-          <input class="tier-multiplier-input" id="rate-matsu" type="number" value="5" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
-          <div class="tier-price" id="price-matsu">¥0</div>
+          <div class="tier-rate-wrap">
+            <div class="tier-rate-label">原価率(%)</div>
+            <input class="tier-rate-input" id="rate-matsu" type="number" value="12" min="1" max="99" step="1" oninput="renderPriceTiers()">
+          </div>
+          <div class="tier-price-wrap">
+            <div class="tier-price" id="price-matsu">—</div>
+            <div class="tier-price-mul" id="mul-matsu"></div>
+          </div>
         </div>
       </div>
 
@@ -1435,12 +1462,19 @@ function updateCostBadge() {
 function renderPriceTiers() {
   const r = recipes.find(x => x.id === currentRecipeId);
   const cost = r ? calcCost(r) : 0;
-  [['ume', '梅'], ['take', '竹'], ['matsu', '松']].forEach(([key]) => {
-    const rate = parseFloat(document.getElementById('rate-' + key)?.value) || 0;
-    const label = document.getElementById('rate-' + key + '-label');
+  ['ume', 'take', 'matsu'].forEach(key => {
+    const pct = parseFloat(document.getElementById('rate-' + key)?.value) || 0;
     const priceEl = document.getElementById('price-' + key);
-    if (label) label.textContent = rate % 1 === 0 ? rate : rate.toFixed(1);
-    if (priceEl) priceEl.textContent = cost > 0 ? '¥' + Math.ceil(cost * rate).toLocaleString() : '—';
+    const mulEl = document.getElementById('mul-' + key);
+    if (cost > 0 && pct > 0) {
+      const price = Math.ceil(cost / (pct / 100));
+      const multiplier = (price / cost).toFixed(1);
+      if (priceEl) priceEl.textContent = '¥' + price.toLocaleString();
+      if (mulEl) mulEl.textContent = '（原価の約' + multiplier + '倍）';
+    } else {
+      if (priceEl) priceEl.textContent = '—';
+      if (mulEl) mulEl.textContent = '';
+    }
   });
 }
 
