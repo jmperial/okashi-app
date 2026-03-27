@@ -1015,7 +1015,7 @@
 
       <!-- Add Ingredient Form -->
       <div class="ingredient-form" id="ingredient-form" style="display:none;">
-        <div class="section-title" style="margin-bottom:10px;">材料を追加</div>
+        <div class="section-title" style="margin-bottom:10px;" id="ing-form-title">材料を追加</div>
         <div class="ingredient-form-grid">
           <div class="form-group full">
             <label class="form-label">材料名 *</label>
@@ -1046,8 +1046,8 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:6px;">
-          <button class="btn btn-primary" style="flex:1;" onclick="addIngredient()">追加する</button>
-          <button class="btn btn-secondary" onclick="toggleIngredientForm()">キャンセル</button>
+          <button class="btn btn-primary" style="flex:1;" id="ing-submit-btn" onclick="saveIngredient()">追加する</button>
+          <button class="btn btn-secondary" onclick="cancelIngredientForm()">キャンセル</button>
         </div>
       </div>
 
@@ -1062,7 +1062,7 @@
       <p style="font-size:11px;color:var(--text-light);margin:-8px 0 10px;">袋・箱・乾燥剤・ラベルなどの費用</p>
 
       <div class="ingredient-form" id="supply-form" style="display:none;">
-        <div class="section-title" style="margin-bottom:10px;">備品を追加</div>
+        <div class="section-title" style="margin-bottom:10px;" id="sup-form-title">備品を追加</div>
         <div class="ingredient-form-grid">
           <div class="form-group full">
             <label class="form-label">備品名 *</label>
@@ -1085,8 +1085,8 @@
           </div>
         </div>
         <div style="display:flex;gap:8px;margin-top:6px;">
-          <button class="btn btn-primary" style="flex:1;" onclick="addSupply()">追加する</button>
-          <button class="btn btn-secondary" onclick="toggleSupplyForm()">キャンセル</button>
+          <button class="btn btn-primary" style="flex:1;" id="sup-submit-btn" onclick="saveSupply()">追加する</button>
+          <button class="btn btn-secondary" onclick="cancelSupplyForm()">キャンセル</button>
         </div>
       </div>
 
@@ -1527,46 +1527,86 @@ function toggleRowSearch(rowId) {
 function updateSearchLinks(prefix) {}
 
 // ===== INGREDIENTS =====
+let editingIngredientId = null;
+
 function toggleIngredientForm() {
+  editingIngredientId = null;
   const f = document.getElementById('ingredient-form');
   f.style.display = f.style.display === 'none' ? 'block' : 'none';
   if (f.style.display === 'block') {
+    document.getElementById('ing-form-title').textContent = '材料を追加';
+    document.getElementById('ing-submit-btn').textContent = '追加する';
+    document.getElementById('ing-name').value = '';
+    document.getElementById('ing-amount').value = '';
+    document.getElementById('ing-price').value = '';
+    document.getElementById('ing-supplier').value = '';
     document.getElementById('ing-name').focus();
-    // Set today's date
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('ing-date').value = today;
   }
 }
 
-function addIngredient() {
+function cancelIngredientForm() {
+  editingIngredientId = null;
+  document.getElementById('ingredient-form').style.display = 'none';
+}
+
+function editIngredient(ingId) {
+  const r = recipes.find(x => x.id === currentRecipeId);
+  if (!r) return;
+  const ing = (r.ingredients || []).find(i => i.id === ingId);
+  if (!ing) return;
+  editingIngredientId = ingId;
+  document.getElementById('ing-form-title').textContent = '材料を編集';
+  document.getElementById('ing-submit-btn').textContent = '更新する';
+  document.getElementById('ing-name').value = ing.name || '';
+  document.getElementById('ing-amount').value = ing.amount || '';
+  document.getElementById('ing-price').value = ing.price && ing.price !== '0' ? ing.price : '';
+  document.getElementById('ing-date').value = ing.date || '';
+  document.getElementById('ing-supplier').value = ing.supplier || '';
+  const f = document.getElementById('ingredient-form');
+  f.style.display = 'block';
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('ing-name').focus();
+}
+
+function saveIngredient() {
   const name = document.getElementById('ing-name').value.trim();
   if (!name) { showToast('材料名を入力してください'); return; }
-
   const r = recipes.find(x => x.id === currentRecipeId);
   if (!r) return;
   if (!r.ingredients) r.ingredients = [];
 
-  r.ingredients.push({
-    id: Date.now().toString(),
-    name,
-    amount: document.getElementById('ing-amount').value.trim(),
-    price: document.getElementById('ing-price').value || '0',
-    date: document.getElementById('ing-date').value,
-    supplier: document.getElementById('ing-supplier').value.trim()
-  });
+  if (editingIngredientId) {
+    const ing = r.ingredients.find(i => i.id === editingIngredientId);
+    if (ing) {
+      ing.name = name;
+      ing.amount = document.getElementById('ing-amount').value.trim();
+      ing.price = document.getElementById('ing-price').value || '0';
+      ing.date = document.getElementById('ing-date').value;
+      ing.supplier = document.getElementById('ing-supplier').value.trim();
+    }
+    showToast('材料を更新しました ✏️');
+  } else {
+    r.ingredients.push({
+      id: Date.now().toString(),
+      name,
+      amount: document.getElementById('ing-amount').value.trim(),
+      price: document.getElementById('ing-price').value || '0',
+      date: document.getElementById('ing-date').value,
+      supplier: document.getElementById('ing-supplier').value.trim()
+    });
+    showToast('材料を追加しました 🛒');
+  }
 
   saveData(recipes);
-  document.getElementById('ing-name').value = '';
-  document.getElementById('ing-amount').value = '';
-  document.getElementById('ing-price').value = '';
-  document.getElementById('ing-supplier').value = '';
-  toggleIngredientForm();
+  cancelIngredientForm();
   renderIngredients();
   updateCostBadge();
-  showToast('材料を追加しました 🛒');
 }
 
 function deleteIngredient(ingId) {
+  if (!confirm('この材料を削除しますか？')) return;
   const r = recipes.find(x => x.id === currentRecipeId);
   if (!r) return;
   r.ingredients = (r.ingredients || []).filter(i => i.id !== ingId);
@@ -1648,6 +1688,7 @@ function renderIngredients() {
       <td class="td-sub">${priceStr}</td>
       <td class="td-act">
         <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="toggleRowSearch('ing-s-${ing.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="editIngredient('${ing.id}')" title="編集">✎</button>
         <button class="btn btn-danger btn-sm btn-icon" style="width:26px;height:26px;font-size:10px;" onclick="deleteIngredient('${ing.id}')">✕</button>
       </td>
     </tr>
@@ -1680,35 +1721,77 @@ function renderIngredients() {
 }
 
 // ===== SUPPLIES =====
+let editingSupplyId = null;
+
 function toggleSupplyForm() {
+  editingSupplyId = null;
   const f = document.getElementById('supply-form');
   f.style.display = f.style.display === 'none' ? 'block' : 'none';
-  if (f.style.display === 'block') document.getElementById('sup-name').focus();
+  if (f.style.display === 'block') {
+    document.getElementById('sup-form-title').textContent = '備品を追加';
+    document.getElementById('sup-submit-btn').textContent = '追加する';
+    document.getElementById('sup-name').value = '';
+    document.getElementById('sup-amount').value = '';
+    document.getElementById('sup-price').value = '';
+    document.getElementById('sup-name').focus();
+  }
 }
 
-function addSupply() {
+function cancelSupplyForm() {
+  editingSupplyId = null;
+  document.getElementById('supply-form').style.display = 'none';
+}
+
+function editSupply(supId) {
+  const r = recipes.find(x => x.id === currentRecipeId);
+  if (!r) return;
+  const s = (r.supplies || []).find(x => x.id === supId);
+  if (!s) return;
+  editingSupplyId = supId;
+  document.getElementById('sup-form-title').textContent = '備品を編集';
+  document.getElementById('sup-submit-btn').textContent = '更新する';
+  document.getElementById('sup-name').value = s.name || '';
+  document.getElementById('sup-amount').value = s.amount || '';
+  document.getElementById('sup-price').value = s.price && s.price !== '0' ? s.price : '';
+  const f = document.getElementById('supply-form');
+  f.style.display = 'block';
+  f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('sup-name').focus();
+}
+
+function saveSupply() {
   const name = document.getElementById('sup-name').value.trim();
   if (!name) { showToast('備品名を入力してください'); return; }
   const r = recipes.find(x => x.id === currentRecipeId);
   if (!r) return;
   if (!r.supplies) r.supplies = [];
-  r.supplies.push({
-    id: Date.now().toString(),
-    name,
-    amount: document.getElementById('sup-amount').value.trim(),
-    price: document.getElementById('sup-price').value || '0'
-  });
+
+  if (editingSupplyId) {
+    const s = r.supplies.find(x => x.id === editingSupplyId);
+    if (s) {
+      s.name = name;
+      s.amount = document.getElementById('sup-amount').value.trim();
+      s.price = document.getElementById('sup-price').value || '0';
+    }
+    showToast('備品を更新しました ✏️');
+  } else {
+    r.supplies.push({
+      id: Date.now().toString(),
+      name,
+      amount: document.getElementById('sup-amount').value.trim(),
+      price: document.getElementById('sup-price').value || '0'
+    });
+    showToast('備品を追加しました 📦');
+  }
+
   saveData(recipes);
-  document.getElementById('sup-name').value = '';
-  document.getElementById('sup-amount').value = '';
-  document.getElementById('sup-price').value = '';
-  toggleSupplyForm();
+  cancelSupplyForm();
   renderSupplies();
   updateCostBadge();
-  showToast('備品を追加しました 📦');
 }
 
 function deleteSupply(supId) {
+  if (!confirm('この備品を削除しますか？')) return;
   const r = recipes.find(x => x.id === currentRecipeId);
   if (!r) return;
   r.supplies = (r.supplies || []).filter(s => s.id !== supId);
@@ -1736,6 +1819,7 @@ function renderSupplies() {
       <td class="td-sub">${s.price && s.price !== '0' ? '¥' + parseFloat(s.price).toLocaleString() : '—'}</td>
       <td class="td-act">
         <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="toggleRowSearch('sup-s-${s.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="editSupply('${s.id}')" title="編集">✎</button>
         <button class="btn btn-danger btn-sm btn-icon" style="width:26px;height:26px;font-size:10px;" onclick="deleteSupply('${s.id}')">✕</button>
       </td>
     </tr>
