@@ -1502,7 +1502,7 @@ function switchDetailTab(tab) {
 const SEARCH_URLS = {
   amazon:  kw => `https://www.amazon.co.jp/s?k=${encodeURIComponent(kw)}`,
   rakuten: kw => `https://search.rakuten.co.jp/search/mall/${encodeURIComponent(kw)}/`,
-  cotta:   kw => `https://www.cotta.jp/search/?keyword=${encodeURIComponent(kw)}`,
+  cotta:   kw => `https://www.cotta.jp/products/list.php?name=${encodeURIComponent(kw)}`,
   tomiz:   kw => `https://tomiz.com/search?keyword=${encodeURIComponent(kw)}`
 };
 
