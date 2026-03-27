@@ -1024,7 +1024,7 @@
               <button type="button" class="price-search-btn" onclick="openPriceSearch('ing','amazon')" title="Amazonで検索">🛒 Amazon</button>
               <button type="button" class="price-search-btn" onclick="openPriceSearch('ing','rakuten')" title="楽天で検索">🦅 楽天</button>
               <button type="button" class="price-search-btn" onclick="openPriceSearch('ing','cotta')" title="cottaで検索">🎂 cotta</button>
-              <button type="button" class="price-search-btn" onclick="openPriceSearch('ing','cuoca')" title="cuocaで検索">🍞 cuoca</button>
+              <button type="button" class="price-search-btn" onclick="openPriceSearch('ing','tomiz')" title="富澤商店で検索">🌾 富澤商店</button>
             </div>
           </div>
           <div class="form-group">
@@ -1071,7 +1071,7 @@
               <button type="button" class="price-search-btn" onclick="openPriceSearch('sup','amazon')" title="Amazonで検索">🛒 Amazon</button>
               <button type="button" class="price-search-btn" onclick="openPriceSearch('sup','rakuten')" title="楽天で検索">🦅 楽天</button>
               <button type="button" class="price-search-btn" onclick="openPriceSearch('sup','cotta')" title="cottaで検索">🎂 cotta</button>
-              <button type="button" class="price-search-btn" onclick="openPriceSearch('sup','cuoca')" title="cuocaで検索">🍞 cuoca</button>
+              <button type="button" class="price-search-btn" onclick="openPriceSearch('sup','tomiz')" title="富澤商店で検索">🌾 富澤商店</button>
             </div>
           </div>
           <div class="form-group">
@@ -1502,7 +1502,7 @@ const SEARCH_URLS = {
   amazon:  kw => `https://www.amazon.co.jp/s?k=${encodeURIComponent(kw)}`,
   rakuten: kw => `https://search.rakuten.co.jp/search/mall/${encodeURIComponent(kw)}/`,
   cotta:   kw => `https://www.cotta.jp/products/list/?name=${encodeURIComponent(kw)}`,
-  cuoca:   kw => `https://www.cuoca.com/search?q=${encodeURIComponent(kw)}`
+  tomiz:   kw => `https://tomiz.com/search?search_word=${encodeURIComponent(kw)}`
 };
 
 function openPriceSearch(prefix, site) {
@@ -1653,7 +1653,7 @@ function renderIngredients() {
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.rakuten('${safeKw}'),'_blank','noopener')">🦅 楽天</button>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cotta('${safeKw}'),'_blank','noopener')">🎂 cotta</button>
-          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cuoca('${safeKw}'),'_blank','noopener')">🍞 cuoca</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.tomiz('${safeKw}'),'_blank','noopener')">🌾 富澤商店</button>
         </div>
       </td>
     </tr>`;
@@ -1740,7 +1740,7 @@ function renderSupplies() {
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.rakuten('${safeKw}'),'_blank','noopener')">🦅 楽天</button>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cotta('${safeKw}'),'_blank','noopener')">🎂 cotta</button>
-          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.cuoca('${safeKw}'),'_blank','noopener')">🍞 cuoca</button>
+          <button class="price-search-btn" onclick="window.open(SEARCH_URLS.tomiz('${safeKw}'),'_blank','noopener')">🌾 富澤商店</button>
         </div>
       </td>
     </tr>`;
