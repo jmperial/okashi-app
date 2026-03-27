@@ -439,7 +439,7 @@
     background: linear-gradient(135deg, var(--yellow-light), var(--peach-light));
     border-radius: 14px;
     padding: 14px 16px;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     border: 1.5px solid var(--yellow);
     display: flex;
     justify-content: space-between;
@@ -447,6 +447,56 @@
   }
   .cost-label { font-size: 13px; color: var(--text-light); font-weight: 600; }
   .cost-value { font-size: 22px; font-weight: 800; color: var(--brown); }
+
+  /* ===== 推奨販売価格 松竹梅 ===== */
+  .price-tiers {
+    border-radius: 14px;
+    border: 1.5px solid var(--lavender);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .price-tiers-header {
+    background: var(--lavender);
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brown);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .price-tier-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--lavender-light);
+    border-top: 1px solid var(--lavender);
+    gap: 10px;
+  }
+  .tier-badge {
+    font-size: 16px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .tier-info { flex: 1; }
+  .tier-name { font-size: 13px; font-weight: 700; color: var(--brown); }
+  .tier-rate { font-size: 10px; color: var(--text-light); }
+  .tier-price { font-size: 18px; font-weight: 800; color: var(--pink-dark); }
+  .tier-multiplier-input {
+    width: 52px;
+    padding: 4px 6px;
+    border: 1.5px solid var(--lavender);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brown);
+    background: var(--white);
+    text-align: center;
+    outline: none;
+    font-family: inherit;
+  }
+  .tier-multiplier-input:focus { border-color: var(--pink-dark); }
 
   .ingredient-form {
     background: var(--mint-light);
@@ -848,6 +898,41 @@
           <div class="cost-value" id="total-cost">¥0</div>
         </div>
         <div style="font-size:32px;">💴</div>
+      </div>
+
+      <!-- 推奨販売価格 松竹梅 -->
+      <div class="price-tiers">
+        <div class="price-tiers-header">
+          <span>💰 推奨販売価格</span>
+          <span style="font-size:10px;font-weight:400;color:var(--text-light);">倍率を変更できます</span>
+        </div>
+        <div class="price-tier-row">
+          <div class="tier-badge">🌸</div>
+          <div class="tier-info">
+            <div class="tier-name">梅</div>
+            <div class="tier-rate">原価 × <span id="rate-ume-label">2</span> 倍</div>
+          </div>
+          <input class="tier-multiplier-input" id="rate-ume" type="number" value="2" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
+          <div class="tier-price" id="price-ume">¥0</div>
+        </div>
+        <div class="price-tier-row">
+          <div class="tier-badge">🎋</div>
+          <div class="tier-info">
+            <div class="tier-name">竹</div>
+            <div class="tier-rate">原価 × <span id="rate-take-label">3</span> 倍</div>
+          </div>
+          <input class="tier-multiplier-input" id="rate-take" type="number" value="3" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
+          <div class="tier-price" id="price-take">¥0</div>
+        </div>
+        <div class="price-tier-row">
+          <div class="tier-badge">🌲</div>
+          <div class="tier-info">
+            <div class="tier-name">松</div>
+            <div class="tier-rate">原価 × <span id="rate-matsu-label">5</span> 倍</div>
+          </div>
+          <input class="tier-multiplier-input" id="rate-matsu" type="number" value="5" min="1" max="99" step="0.1" oninput="renderPriceTiers()">
+          <div class="tier-price" id="price-matsu">¥0</div>
+        </div>
       </div>
 
       <div class="section-header">
@@ -1344,6 +1429,19 @@ function updateCostBadge() {
   const cost = calcCost(r);
   document.getElementById('detail-cost-badge').textContent = cost > 0 ? '¥' + cost.toLocaleString() : '原価未設定';
   document.getElementById('total-cost').textContent = '¥' + cost.toLocaleString();
+  renderPriceTiers();
+}
+
+function renderPriceTiers() {
+  const r = recipes.find(x => x.id === currentRecipeId);
+  const cost = r ? calcCost(r) : 0;
+  [['ume', '梅'], ['take', '竹'], ['matsu', '松']].forEach(([key]) => {
+    const rate = parseFloat(document.getElementById('rate-' + key)?.value) || 0;
+    const label = document.getElementById('rate-' + key + '-label');
+    const priceEl = document.getElementById('price-' + key);
+    if (label) label.textContent = rate % 1 === 0 ? rate : rate.toFixed(1);
+    if (priceEl) priceEl.textContent = cost > 0 ? '¥' + Math.ceil(cost * rate).toLocaleString() : '—';
+  });
 }
 
 function renderIngredients() {
@@ -1352,6 +1450,7 @@ function renderIngredients() {
 
   const cost = calcCost(r);
   document.getElementById('total-cost').textContent = '¥' + cost.toLocaleString();
+  renderPriceTiers();
 
   const list = document.getElementById('ingredients-list');
   const ings = r.ingredients || [];
