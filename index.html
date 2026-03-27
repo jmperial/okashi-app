@@ -693,6 +693,45 @@
     font-size: 13px;
   }
 
+  /* ===== INGREDIENTS TABLE ===== */
+  .ingredients-table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .ingredients-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 360px;
+  }
+  .ingredients-table th {
+    background: linear-gradient(135deg, var(--peach), var(--pink-light));
+    color: var(--brown);
+    padding: 9px 10px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .ingredients-table td {
+    padding: 9px 10px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .ingredients-table tr:nth-child(even) td {
+    background: var(--peach-light);
+  }
+  .ingredients-table .td-name { font-weight: 600; }
+  .ingredients-table .td-del {
+    text-align: center;
+    width: 36px;
+    padding: 4px;
+  }
+
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -809,7 +848,7 @@
         <div class="upload-icon">📷</div>
         <p>写真を撮影・選択する</p>
         <p style="font-size:11px;color:var(--text-light);margin-top:4px;">カメラ・ライブラリから選択できます</p>
-        <input type="file" accept="image/*" capture="environment" id="photo-file-input" onchange="handlePhotoSelected(event)">
+        <input type="file" accept="image/*" id="photo-file-input" onchange="handlePhotoSelected(event)">
       </div>
 
       <div id="new-photo-area" style="display:none;">
@@ -1260,20 +1299,33 @@ function renderIngredients() {
     list.innerHTML = '<div class="no-items">まだ材料が登録されていません<br>「＋ 追加」で追加しましょう</div>';
     return;
   }
-  list.innerHTML = ings.map(ing => `
-    <div class="ingredient-row">
-      <div class="ingredient-row-header">
-        <div class="ingredient-name-display">🌿 ${escHtml(ing.name)}</div>
-        <button class="btn btn-danger btn-sm btn-icon" onclick="deleteIngredient('${ing.id}')">✕</button>
-      </div>
-      <div class="ingredient-detail">
-        ${ing.amount ? `<span>📏 ${escHtml(ing.amount)}</span>` : '<span></span>'}
-        ${ing.price && ing.price !== '0' ? `<span>💴 ¥${parseFloat(ing.price).toLocaleString()}</span>` : '<span></span>'}
-        ${ing.date ? `<span>📅 ${ing.date}</span>` : '<span></span>'}
-        ${ing.supplier ? `<span>🏪 ${escHtml(ing.supplier)}</span>` : '<span></span>'}
-      </div>
-    </div>
-  `).join('');
+
+  const rows = ings.map(ing => `
+    <tr>
+      <td class="td-name">🌿 ${escHtml(ing.name)}</td>
+      <td>${escHtml(ing.amount || '—')}</td>
+      <td>${ing.price && ing.price !== '0' ? '¥' + parseFloat(ing.price).toLocaleString() : '—'}</td>
+      <td>${ing.date ? escHtml(ing.date) : '—'}</td>
+      <td>${escHtml(ing.supplier || '—')}</td>
+      <td class="td-del"><button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteIngredient('${ing.id}')">✕</button></td>
+    </tr>`).join('');
+
+  list.innerHTML = `
+    <div class="ingredients-table-wrap">
+      <table class="ingredients-table">
+        <thead>
+          <tr>
+            <th>材料名</th>
+            <th>使用量</th>
+            <th>仕入れ金額</th>
+            <th>仕入れ日</th>
+            <th>仕入れ先</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 // ===== PHOTOS =====
