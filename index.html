@@ -1502,8 +1502,8 @@ function switchDetailTab(tab) {
 const SEARCH_URLS = {
   amazon:  kw => `https://www.amazon.co.jp/s?k=${encodeURIComponent(kw)}`,
   rakuten: kw => `https://search.rakuten.co.jp/search/mall/${encodeURIComponent(kw)}/`,
-  cotta:   kw => `https://www.google.com/search?q=${encodeURIComponent(kw + ' site:cotta.jp')}`,
-  tomiz:   kw => `https://www.google.com/search?q=${encodeURIComponent(kw + ' site:tomiz.com')}`
+  cotta:   kw => `https://www.cotta.jp/products/search.php?s_word=${encodeURIComponent(kw)}`,
+  tomiz:   kw => `https://tomiz.com/search?keyword=${encodeURIComponent(kw)}`
 };
 
 function openPriceSearch(prefix, site) {
