@@ -1001,6 +1001,38 @@
       </div>
 
       <div id="ingredients-list"></div>
+
+      <!-- 備品・資材 -->
+      <div class="divider"></div>
+      <div class="section-header">
+        <div class="section-title">📦 備品・資材</div>
+        <button class="btn btn-secondary btn-sm" onclick="toggleSupplyForm()">＋ 追加</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-light);margin:-8px 0 10px;">袋・箱・乾燥剤・ラベルなどの費用</p>
+
+      <div class="ingredient-form" id="supply-form" style="display:none;">
+        <div class="section-title" style="margin-bottom:10px;">備品を追加</div>
+        <div class="ingredient-form-grid">
+          <div class="form-group full">
+            <label class="form-label">備品名 *</label>
+            <input class="form-input" id="sup-name" placeholder="例: OPP袋、乾燥剤">
+          </div>
+          <div class="form-group">
+            <label class="form-label">数量</label>
+            <input class="form-input" id="sup-amount" placeholder="例: 1枚">
+          </div>
+          <div class="form-group">
+            <label class="form-label">費用（円）</label>
+            <input class="form-input" id="sup-price" type="number" placeholder="0" min="0">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="addSupply()">追加する</button>
+          <button class="btn btn-secondary" onclick="toggleSupplyForm()">キャンセル</button>
+        </div>
+      </div>
+
+      <div id="supplies-list"></div>
     </div>
 
     <!-- Tab: 写真 -->
@@ -1388,16 +1420,18 @@ function renderDetail() {
   const yieldInput = document.getElementById('recipe-yield');
   if (yieldInput) yieldInput.value = r.yield || '';
 
-  // Ingredients
+  // Ingredients & Supplies
   renderIngredients();
+  renderSupplies();
 
   // Photos
   renderPhotos();
 }
 
 function calcCost(r) {
-  if (!r.ingredients) return 0;
-  return r.ingredients.reduce((s, ing) => s + (parseFloat(ing.price) || 0), 0);
+  const ingCost = (r.ingredients || []).reduce((s, ing) => s + (parseFloat(ing.price) || 0), 0);
+  const supCost = (r.supplies || []).reduce((s, sup) => s + (parseFloat(sup.price) || 0), 0);
+  return ingCost + supCost;
 }
 
 // ===== DETAIL TABS =====
@@ -1540,6 +1574,70 @@ function renderIngredients() {
             <th></th>
           </tr>
         </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ===== SUPPLIES =====
+function toggleSupplyForm() {
+  const f = document.getElementById('supply-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') document.getElementById('sup-name').focus();
+}
+
+function addSupply() {
+  const name = document.getElementById('sup-name').value.trim();
+  if (!name) { showToast('備品名を入力してください'); return; }
+  const r = recipes.find(x => x.id === currentRecipeId);
+  if (!r) return;
+  if (!r.supplies) r.supplies = [];
+  r.supplies.push({
+    id: Date.now().toString(),
+    name,
+    amount: document.getElementById('sup-amount').value.trim(),
+    price: document.getElementById('sup-price').value || '0'
+  });
+  saveData(recipes);
+  document.getElementById('sup-name').value = '';
+  document.getElementById('sup-amount').value = '';
+  document.getElementById('sup-price').value = '';
+  toggleSupplyForm();
+  renderSupplies();
+  updateCostBadge();
+  showToast('備品を追加しました 📦');
+}
+
+function deleteSupply(supId) {
+  const r = recipes.find(x => x.id === currentRecipeId);
+  if (!r) return;
+  r.supplies = (r.supplies || []).filter(s => s.id !== supId);
+  saveData(recipes);
+  renderSupplies();
+  updateCostBadge();
+  showToast('削除しました');
+}
+
+function renderSupplies() {
+  const r = recipes.find(x => x.id === currentRecipeId);
+  if (!r) return;
+  const list = document.getElementById('supplies-list');
+  const sups = r.supplies || [];
+  if (sups.length === 0) {
+    list.innerHTML = '<div class="no-items">備品が登録されていません</div>';
+    return;
+  }
+  const rows = sups.map(s => `
+    <tr>
+      <td class="td-name">📦 ${escHtml(s.name)}</td>
+      <td>${escHtml(s.amount || '—')}</td>
+      <td>${s.price && s.price !== '0' ? '¥' + parseFloat(s.price).toLocaleString() : '—'}</td>
+      <td class="td-del"><button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteSupply('${s.id}')">✕</button></td>
+    </tr>`).join('');
+  list.innerHTML = `
+    <div class="ingredients-table-wrap">
+      <table class="ingredients-table">
+        <thead><tr><th>備品名</th><th>数量</th><th>費用</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
