@@ -712,6 +712,35 @@
     font-size: 13px;
   }
 
+  /* ===== COMPACT INGREDIENTS SUMMARY ===== */
+  .compact-ing-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .compact-ing-table th {
+    background: var(--peach);
+    color: var(--brown);
+    padding: 5px 8px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .compact-ing-table td {
+    padding: 5px 8px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+  }
+  .compact-ing-table tr:nth-child(even) td { background: var(--peach-light); }
+  .compact-ing-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+
   /* ===== INGREDIENTS TABLE ===== */
   .ingredients-table-wrap {
     overflow-x: auto;
@@ -806,7 +835,7 @@
     <!-- Tab: 基本情報 -->
     <div class="tab-content active" id="tab-info">
       <div class="card">
-        <div class="section-title" style="margin-bottom:10px;">🍴 作り方</div>
+        <div class="section-title" style="margin-bottom:10px;">📝 レシピ</div>
         <div id="detail-steps"></div>
       </div>
     </div>
@@ -1205,13 +1234,29 @@ function renderDetail() {
   const cost = calcCost(r);
   document.getElementById('detail-cost-badge').textContent = cost > 0 ? '¥' + cost.toLocaleString() : '原価未設定';
 
+  // Compact ingredients summary
+  const stepsDiv = document.getElementById('detail-steps');
+  const ings = r.ingredients || [];
+  let ingsSummaryHtml = '';
+  if (ings.length > 0) {
+    const rows = ings.map(ing => `<tr><td>${escHtml(ing.name)}</td><td style="white-space:nowrap;color:var(--brown);font-weight:600;">${escHtml(ing.amount || '—')}</td></tr>`).join('');
+    ingsSummaryHtml = `
+      <div class="compact-ing-wrap">
+        <table class="compact-ing-table">
+          <thead><tr><th>材料</th><th>分量</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
   // Steps
   const steps = (r.steps || '').split('\n').filter(s => s.trim());
-  const stepsDiv = document.getElementById('detail-steps');
   if (steps.length === 0) {
-    stepsDiv.innerHTML = '<p style="color:var(--text-light);font-size:13px;">手順が登録されていません</p>';
+    stepsDiv.innerHTML = ingsSummaryHtml + '<p style="color:var(--text-light);font-size:13px;">手順が登録されていません</p>';
   } else {
-    stepsDiv.innerHTML = `<div class="steps-list">` +
+    stepsDiv.innerHTML = ingsSummaryHtml +
+      `<div class="section-title" style="margin-bottom:8px;">🍴 手順</div>` +
+      `<div class="steps-list">` +
       steps.map((s, i) => `
         <div class="step-item">
           <div class="step-num">${i+1}</div>
