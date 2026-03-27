@@ -902,7 +902,7 @@
           </label>
           <label class="photo-upload-btn">
             🖼️ ライブラリから選択
-            <input type="file" accept="image/*" onchange="handlePhotoSelected(event)">
+            <input type="file" accept="image/*" multiple onchange="handlePhotoSelected(event)">
           </label>
         </div>
       </div>
@@ -1390,18 +1390,42 @@ function renderIngredients() {
 
 // ===== PHOTOS =====
 function handlePhotoSelected(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    newPhotoData = e.target.result;
-    document.getElementById('photo-preview-new').src = newPhotoData;
-    document.getElementById('new-photo-area').style.display = 'block';
-    document.getElementById('photo-memo-input').value = '';
-  };
-  reader.readAsDataURL(file);
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
   event.target.value = '';
+
+  if (files.length === 1) {
+    // 1枚: プレビュー＋メモ入力フロー
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      newPhotoData = e.target.result;
+      document.getElementById('photo-preview-new').src = newPhotoData;
+      document.getElementById('new-photo-area').style.display = 'block';
+      document.getElementById('photo-memo-input').value = '';
+    };
+    reader.readAsDataURL(files[0]);
+  } else {
+    // 複数: 全件まとめて即保存
+    const r = recipes.find(x => x.id === currentRecipeId);
+    if (!r) return;
+    if (!r.photos) r.photos = [];
+    const dateStr = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+    let loaded = 0;
+    files.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        r.photos.push({ id: (Date.now() + idx).toString(), data: e.target.result, date: dateStr, memo: '' });
+        loaded++;
+        if (loaded === files.length) {
+          saveData(recipes);
+          renderPhotos();
+          renderStats();
+          showToast(`${files.length}枚の写真を保存しました 📸`);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 }
 
 function savePhoto() {
@@ -1411,15 +1435,8 @@ function savePhoto() {
   if (!r.photos) r.photos = [];
 
   const memo = document.getElementById('photo-memo-input').value.trim();
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
-
-  r.photos.push({
-    id: Date.now().toString(),
-    data: newPhotoData,
-    date: dateStr,
-    memo
-  });
+  const dateStr = new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'});
+  r.photos.push({ id: Date.now().toString(), data: newPhotoData, date: dateStr, memo });
 
   saveData(recipes);
   newPhotoData = null;
