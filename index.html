@@ -466,19 +466,38 @@
   .photo-upload-area {
     border: 2.5px dashed var(--pink);
     border-radius: 16px;
-    padding: 24px;
+    padding: 18px 16px;
     text-align: center;
     background: var(--pink-light);
-    cursor: pointer;
     margin-bottom: 14px;
-    transition: all 0.2s;
+  }
+  .photo-upload-area .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .photo-upload-area p { font-size: 13px; color: var(--pink-dark); font-weight: 600; margin-bottom: 12px; }
+  .photo-upload-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .photo-upload-btn {
     position: relative;
     overflow: hidden;
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: 2px solid var(--pink-dark);
+    background: var(--white);
+    color: var(--pink-dark);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .photo-upload-area:active { background: var(--pink); }
-  .photo-upload-area .upload-icon { font-size: 36px; margin-bottom: 8px; }
-  .photo-upload-area p { font-size: 13px; color: var(--pink-dark); font-weight: 600; }
-  .photo-upload-area input[type=file] {
+  .photo-upload-btn:active { background: var(--pink-light); }
+  .photo-upload-btn input[type=file] {
     position: absolute; inset: 0; opacity: 0; cursor: pointer;
   }
 
@@ -846,9 +865,17 @@
       <!-- Upload area -->
       <div class="photo-upload-area">
         <div class="upload-icon">📷</div>
-        <p>写真を撮影・選択する</p>
-        <p style="font-size:11px;color:var(--text-light);margin-top:4px;">カメラ・ライブラリから選択できます</p>
-        <input type="file" accept="image/*" id="photo-file-input" onchange="handlePhotoSelected(event)">
+        <p>写真を追加する</p>
+        <div class="photo-upload-btns">
+          <label class="photo-upload-btn">
+            📸 カメラで撮影
+            <input type="file" accept="image/*" capture="environment" onchange="handlePhotoSelected(event)">
+          </label>
+          <label class="photo-upload-btn">
+            🖼️ ライブラリから選択
+            <input type="file" accept="image/*" onchange="handlePhotoSelected(event)">
+          </label>
+        </div>
       </div>
 
       <div id="new-photo-area" style="display:none;">
