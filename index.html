@@ -828,41 +828,51 @@
 
   /* ===== INGREDIENTS TABLE ===== */
   .ingredients-table-wrap {
-    overflow-x: auto;
     border-radius: 12px;
     border: 1px solid var(--border);
     margin-bottom: 12px;
+    overflow: hidden;
   }
   .ingredients-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
-    min-width: 360px;
+    table-layout: fixed;
   }
+  .ingredients-table col.col-name   { width: auto; }
+  .ingredients-table col.col-amount { width: 60px; }
+  .ingredients-table col.col-price  { width: 66px; }
+  .ingredients-table col.col-act    { width: 62px; }
   .ingredients-table th {
     background: linear-gradient(135deg, var(--peach), var(--pink-light));
     color: var(--brown);
-    padding: 9px 10px;
+    padding: 8px 8px;
     text-align: left;
     font-weight: 700;
     font-size: 11px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     white-space: nowrap;
+    overflow: hidden;
   }
   .ingredients-table td {
-    padding: 9px 10px;
+    padding: 8px 8px;
     border-top: 1px solid var(--border);
     color: var(--text);
     vertical-align: middle;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-break: strict;
   }
-  .ingredients-table tr:nth-child(even) td {
+  .ingredients-table tr:nth-child(4n+3) td,
+  .ingredients-table tr:nth-child(4n+4) td {
     background: var(--peach-light);
   }
-  .ingredients-table .td-name { font-weight: 600; }
-  .ingredients-table .td-del {
-    text-align: center;
-    width: 36px;
-    padding: 4px;
+  .ingredients-table .td-name { font-weight: 600; font-size: 12px; }
+  .ingredients-table .td-sub  { font-size: 11px; color: var(--text-light); }
+  .ingredients-table .td-act  {
+    text-align: right;
+    padding: 4px 6px;
+    white-space: nowrap;
   }
 
   /* SCROLLBAR */
@@ -1623,20 +1633,21 @@ function renderIngredients() {
 
   const rows = ings.map(ing => {
     const safeKw = escHtml(ing.name).replace(/'/g, "\\'");
+    const priceStr = ing.price && ing.price !== '0' ? '¥' + parseFloat(ing.price).toLocaleString() : '—';
+    const meta = [ing.date, ing.supplier ? `🏪${escHtml(ing.supplier)}` : ''].filter(Boolean).join('　');
     return `
     <tr>
       <td class="td-name">🌿 ${escHtml(ing.name)}</td>
-      <td>${escHtml(ing.amount || '—')}</td>
-      <td>${ing.price && ing.price !== '0' ? '¥' + parseFloat(ing.price).toLocaleString() : '—'}</td>
-      <td>${ing.date ? escHtml(ing.date) : '—'}</td>
-      <td>${escHtml(ing.supplier || '—')}</td>
-      <td class="td-del" style="white-space:nowrap;">
-        <button class="btn btn-secondary btn-sm btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="toggleRowSearch('ing-s-${ing.id}')" title="価格を検索">🔍</button>
-        <button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteIngredient('${ing.id}')">✕</button>
+      <td class="td-sub">${escHtml(ing.amount || '—')}</td>
+      <td class="td-sub">${priceStr}</td>
+      <td class="td-act">
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="toggleRowSearch('ing-s-${ing.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-danger btn-sm btn-icon" style="width:26px;height:26px;font-size:10px;" onclick="deleteIngredient('${ing.id}')">✕</button>
       </td>
     </tr>
     <tr id="ing-s-${ing.id}" style="display:none;">
-      <td colspan="6" style="padding:6px 10px;background:var(--yellow-light);border-top:none;">
+      <td colspan="4" style="padding:8px 10px;background:var(--yellow-light);border-top:none;">
+        ${meta ? `<div style="font-size:10px;color:var(--text-light);margin-bottom:6px;">📅 ${ing.date || ''}${ing.supplier ? '　🏪' + escHtml(ing.supplier) : ''}</div>` : ''}
         <div class="price-search-row">
           <span class="price-search-label">最安値を検索：</span>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
@@ -1651,15 +1662,11 @@ function renderIngredients() {
   list.innerHTML = `
     <div class="ingredients-table-wrap">
       <table class="ingredients-table">
+        <colgroup>
+          <col class="col-name"><col class="col-amount"><col class="col-price"><col class="col-act">
+        </colgroup>
         <thead>
-          <tr>
-            <th>材料名</th>
-            <th>使用量</th>
-            <th>仕入れ金額</th>
-            <th>仕入れ日</th>
-            <th>仕入れ先</th>
-            <th></th>
-          </tr>
+          <tr><th>材料名</th><th>使用量</th><th>仕入れ金額</th><th></th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
@@ -1719,15 +1726,15 @@ function renderSupplies() {
     return `
     <tr>
       <td class="td-name">📦 ${escHtml(s.name)}</td>
-      <td>${escHtml(s.amount || '—')}</td>
-      <td>${s.price && s.price !== '0' ? '¥' + parseFloat(s.price).toLocaleString() : '—'}</td>
-      <td class="td-del" style="white-space:nowrap;">
-        <button class="btn btn-secondary btn-sm btn-icon" style="width:28px;height:28px;font-size:13px;" onclick="toggleRowSearch('sup-s-${s.id}')" title="価格を検索">🔍</button>
-        <button class="btn btn-danger btn-sm btn-icon" style="width:28px;height:28px;font-size:11px;" onclick="deleteSupply('${s.id}')">✕</button>
+      <td class="td-sub">${escHtml(s.amount || '—')}</td>
+      <td class="td-sub">${s.price && s.price !== '0' ? '¥' + parseFloat(s.price).toLocaleString() : '—'}</td>
+      <td class="td-act">
+        <button class="btn btn-secondary btn-sm btn-icon" style="width:26px;height:26px;font-size:12px;" onclick="toggleRowSearch('sup-s-${s.id}')" title="価格を検索">🔍</button>
+        <button class="btn btn-danger btn-sm btn-icon" style="width:26px;height:26px;font-size:10px;" onclick="deleteSupply('${s.id}')">✕</button>
       </td>
     </tr>
     <tr id="sup-s-${s.id}" style="display:none;">
-      <td colspan="4" style="padding:6px 10px;background:var(--yellow-light);border-top:none;">
+      <td colspan="4" style="padding:8px 10px;background:var(--yellow-light);border-top:none;">
         <div class="price-search-row">
           <span class="price-search-label">最安値を検索：</span>
           <button class="price-search-btn" onclick="window.open(SEARCH_URLS.amazon('${safeKw}'),'_blank','noopener')">🛒 Amazon</button>
@@ -1741,6 +1748,9 @@ function renderSupplies() {
   list.innerHTML = `
     <div class="ingredients-table-wrap">
       <table class="ingredients-table">
+        <colgroup>
+          <col class="col-name"><col class="col-amount"><col class="col-price"><col class="col-act">
+        </colgroup>
         <thead><tr><th>備品名</th><th>数量</th><th>費用</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
