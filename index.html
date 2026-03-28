@@ -1239,13 +1239,14 @@ function loadData() {
 function saveData(recipes) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+    return true;
   } catch (e) {
     if (e.name === 'QuotaExceededError' || e.code === 22) {
       showToast('保存容量が不足しています。古い写真を削除してください。');
     } else {
       showToast('保存に失敗しました');
     }
-    throw e;
+    return false;
   }
 }
 
@@ -1586,7 +1587,8 @@ function saveIngredient() {
   if (!r) return;
   if (!r.ingredients) r.ingredients = [];
 
-  if (editingIngredientId) {
+  const isEditing = !!editingIngredientId;
+  if (isEditing) {
     const ing = r.ingredients.find(i => i.id === editingIngredientId);
     if (ing) {
       ing.name = name;
@@ -1595,7 +1597,6 @@ function saveIngredient() {
       ing.date = document.getElementById('ing-date').value;
       ing.supplier = document.getElementById('ing-supplier').value.trim();
     }
-    showToast('材料を更新しました ✏️');
   } else {
     r.ingredients.push({
       id: Date.now().toString(),
@@ -1605,13 +1606,13 @@ function saveIngredient() {
       date: document.getElementById('ing-date').value,
       supplier: document.getElementById('ing-supplier').value.trim()
     });
-    showToast('材料を追加しました 🛒');
   }
 
-  saveData(recipes);
+  const ok = saveData(recipes);
   cancelIngredientForm();
   renderIngredients();
   updateCostBadge();
+  if (ok) showToast(isEditing ? '材料を更新しました ✏️' : '材料を追加しました 🛒');
 }
 
 function deleteIngredient(ingId) {
@@ -1775,14 +1776,14 @@ function saveSupply() {
   if (!r) return;
   if (!r.supplies) r.supplies = [];
 
-  if (editingSupplyId) {
+  const isEditing = !!editingSupplyId;
+  if (isEditing) {
     const s = r.supplies.find(x => x.id === editingSupplyId);
     if (s) {
       s.name = name;
       s.amount = document.getElementById('sup-amount').value.trim();
       s.price = document.getElementById('sup-price').value || '0';
     }
-    showToast('備品を更新しました ✏️');
   } else {
     r.supplies.push({
       id: Date.now().toString(),
@@ -1790,13 +1791,13 @@ function saveSupply() {
       amount: document.getElementById('sup-amount').value.trim(),
       price: document.getElementById('sup-price').value || '0'
     });
-    showToast('備品を追加しました 📦');
   }
 
-  saveData(recipes);
+  const ok = saveData(recipes);
   cancelSupplyForm();
   renderSupplies();
   updateCostBadge();
+  if (ok) showToast(isEditing ? '備品を更新しました ✏️' : '備品を追加しました 📦');
 }
 
 function deleteSupply(supId) {
