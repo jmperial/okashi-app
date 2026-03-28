@@ -1941,6 +1941,7 @@ function cancelPhotoAdd() {
 }
 
 function deletePhoto(photoId) {
+  if (!confirm('この写真を削除しますか？')) return;
   const r = recipes.find(x => x.id === currentRecipeId);
   if (!r) return;
   r.photos = (r.photos || []).filter(p => p.id !== photoId);
