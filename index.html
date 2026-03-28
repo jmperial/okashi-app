@@ -1237,7 +1237,16 @@ function loadData() {
 }
 
 function saveData(recipes) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      showToast('保存容量が不足しています。古い写真を削除してください。');
+    } else {
+      showToast('保存に失敗しました');
+    }
+    throw e;
+  }
 }
 
 let recipes = loadData();
@@ -1848,6 +1857,22 @@ function renderSupplies() {
 }
 
 // ===== PHOTOS =====
+function compressImage(dataUrl, maxSize, quality, callback) {
+  const img = new Image();
+  img.onload = () => {
+    let w = img.width, h = img.height;
+    if (w > maxSize || h > maxSize) {
+      if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+      else { w = Math.round(w * maxSize / h); h = maxSize; }
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    callback(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.src = dataUrl;
+}
+
 function handlePhotoSelected(event) {
   const files = Array.from(event.target.files);
   if (files.length === 0) return;
@@ -1857,10 +1882,12 @@ function handlePhotoSelected(event) {
     // 1枚: プレビュー＋メモ入力フロー
     const reader = new FileReader();
     reader.onload = (e) => {
-      newPhotoData = e.target.result;
-      document.getElementById('photo-preview-new').src = newPhotoData;
-      document.getElementById('new-photo-area').style.display = 'block';
-      document.getElementById('photo-memo-input').value = '';
+      compressImage(e.target.result, 1200, 0.75, (compressed) => {
+        newPhotoData = compressed;
+        document.getElementById('photo-preview-new').src = newPhotoData;
+        document.getElementById('new-photo-area').style.display = 'block';
+        document.getElementById('photo-memo-input').value = '';
+      });
     };
     reader.readAsDataURL(files[0]);
   } else {
@@ -1873,7 +1900,8 @@ function handlePhotoSelected(event) {
     files.forEach((file, idx) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        r.photos.push({ id: (Date.now() + idx).toString(), data: e.target.result, date: dateStr, memo: '' });
+        compressImage(e.target.result, 1200, 0.75, (compressed) => {
+        r.photos.push({ id: (Date.now() + idx).toString(), data: compressed, date: dateStr, memo: '' });
         loaded++;
         if (loaded === files.length) {
           saveData(recipes);
@@ -1881,6 +1909,7 @@ function handlePhotoSelected(event) {
           renderStats();
           showToast(`${files.length}枚の写真を保存しました 📸`);
         }
+        });
       };
       reader.readAsDataURL(file);
     });
